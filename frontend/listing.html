@@ -68,6 +68,19 @@ body{font-family:"Times New Roman",Times,"PingFang SC","Microsoft YaHei",serif;b
 .empty{text-align:center;padding:40px;color:#94a3b8}
 .hint{font-size:11px;color:#999;margin-left:8px}
 
+/* Compliance */
+.char-count{font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;margin-left:6px}
+.char-count.ok{background:#ecfdf5;color:#067d62;border:1px solid #a7f3d0}
+.char-count.warn{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.char-count.over{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+.compliance{margin:0 0 12px;padding:10px 12px;border-radius:6px;font-size:12px;line-height:1.6}
+.compliance.clean{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}
+.compliance.flagged{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.compliance .flag-word{display:inline-block;background:#fee2e2;color:#b91c1c;padding:1px 6px;border-radius:4px;margin:1px;font-weight:600}
+.banned-hl{background:#fee2e2;color:#b91c1c;border-radius:2px;padding:0 2px;font-weight:700}
+.copy-all-btn{padding:5px 12px;border:none;border-radius:6px;font-size:12px;cursor:pointer;background:#067d62;color:white;font-weight:600;margin-left:8px}
+.copy-all-btn:hover{background:#055c49}
+
 @media(max-width:768px){
   .filters{top:44px;padding:8px 10px}
   .filters input{width:140px}
@@ -112,6 +125,77 @@ function num(v){ if(v===null||v===undefined||v==='') return '—'; return v; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
 function copyText(t){ navigator.clipboard.writeText(t).then(function(){},function(){}); }
 
+// ── Amazon 合规校验 ──
+// 违禁/高风险词（绝对化效果、医疗声明、促销词等）
+var BANNED_WORDS = [
+  'best','best seller','bestseller','#1','number one','no.1','top rated','top-rated',
+  'cheapest','lowest price','best price','guarantee','guaranteed','100%',
+  'fda approved','fda-approved','clinically proven','doctor recommended',
+  'cure','heal','treat','prevent','anti-bacterial','antibacterial','antifungal',
+  'eco-friendly','eco friendly','non-toxic','free shipping','sale','discount',
+  'on sale','hot item','perfect','miracle','prevents','cures','heals'
+];
+// 字符/字节上限（Amazon 常见限制）
+var LIMITS = { title: 200, bullet: 500, search_terms_bytes: 250 };
+
+function byteLen(s){ try { return new Blob([s||'']).size; } catch(e){ return (s||'').length; } }
+
+function findBanned(text){
+  if(!text) return [];
+  var low = String(text).toLowerCase();
+  var hits = [];
+  BANNED_WORDS.forEach(function(w){
+    var re = new RegExp('(^|[^a-z0-9])' + w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '([^a-z0-9]|$)', 'i');
+    if(re.test(low) && hits.indexOf(w) < 0) hits.push(w);
+  });
+  return hits;
+}
+
+// 生成字符计数徽章 HTML
+function charBadge(len, limit, unit){
+  var cls = 'ok', u = unit || 'chars';
+  if(len > limit) cls = 'over';
+  else if(len > limit * 0.9) cls = 'warn';
+  return '<span class="char-count '+cls+'">'+len+'/'+limit+' '+u+'</span>';
+}
+
+// 在文本中高亮违禁词
+function highlightBanned(escaped, hits){
+  if(!hits || !hits.length) return escaped;
+  hits.forEach(function(w){
+    var re = new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+    escaped = escaped.replace(re, '<span class="banned-hl">$1</span>');
+  });
+  return escaped;
+}
+
+// 汇总一个 listing 的合规问题
+function complianceReport(L){
+  var problems = [];
+  var allText = [L.title||''].concat(L.bullets||[]).concat([L.description||'']).join(' ');
+  var banned = findBanned(allText);
+  if(banned.length) problems.push('违禁/高风险词: ' + banned.map(function(w){return '<span class="flag-word">'+esc(w)+'</span>';}).join(' '));
+  if(L.title && L.title.length > LIMITS.title) problems.push('标题超长 '+L.title.length+'/'+LIMITS.title);
+  if(L.search_terms && byteLen(L.search_terms) > LIMITS.search_terms_bytes) problems.push('搜索词超字节 '+byteLen(L.search_terms)+'/'+LIMITS.search_terms_bytes+' bytes');
+  (L.bullets||[]).forEach(function(b,i){ if(b.length > LIMITS.bullet) problems.push('卖点'+(i+1)+'超长 '+b.length+'/'+LIMITS.bullet); });
+  return { banned: banned, problems: problems };
+}
+
+// 拼接整篇纯文本（用于一键复制）
+var _plainCache = {};
+function buildPlain(L){
+  var parts = [];
+  if(L.title) parts.push('TITLE:\n' + L.title);
+  if(L.bullets && L.bullets.length) parts.push('BULLET POINTS:\n' + L.bullets.map(function(b,i){return (i+1)+'. '+b;}).join('\n'));
+  if(L.description) parts.push('DESCRIPTION:\n' + L.description);
+  if(L.search_terms) parts.push('SEARCH TERMS:\n' + L.search_terms);
+  return parts.join('\n\n');
+}
+function copyAll(engine){
+  var t = _plainCache[engine] || '';
+  copyText(t);
+}
+
 var DATA = { A: null, B: null };
 var VIEW = 'compare';
 
@@ -129,29 +213,37 @@ function renderListingCard(d, engine){
   }
   var L = d.listing || {};
   var ename = engine==='A' ? 'Seller Sprite Builder' : 'AI Self-Build (Volcano LLM)';
+  _plainCache[engine] = buildPlain(L);
+  var rep = (L && !L._parse_error) ? complianceReport(L) : { banned:[], problems:[] };
   var html = '<div class="card">';
-  html += '<div class="card-header"><span>Listing <span class="engine-badge '+engine+'">'+engine+'</span> '+esc(ename)+'</span><span class="stat">'+esc(d.generated||'')+'</span></div>';
+  html += '<div class="card-header"><span>Listing <span class="engine-badge '+engine+'">'+engine+'</span> '+esc(ename)+'</span><span><button class="copy-all-btn" onclick="copyAll(\''+engine+'\')">Copy All</button></span></div>';
   html += '<div class="card-body">';
   if(d.source_asin){ html += '<div class="field"><div class="field-label">Source ASIN</div><div class="bm-info"><span class="asin">'+esc(d.source_asin)+'</span></div></div>'; }
   if(L._parse_error){
     html += '<div class="note">LLM output could not be parsed as JSON. Raw output below.</div>';
     html += '<div class="desc-box">'+esc(L._raw||'')+'</div>';
   } else {
+    // 合规汇总
+    if(rep.problems.length){
+      html += '<div class="compliance flagged"><strong>⚠️ Compliance check ('+rep.problems.length+' issue'+(rep.problems.length>1?'s':'')+')</strong><br>' + rep.problems.join('<br>') + '</div>';
+    } else {
+      html += '<div class="compliance clean">✅ Compliance check passed (no banned words, within limits)</div>';
+    }
     if(L.title){
-      html += '<div class="field"><div class="field-label">Title ('+L.title.length+' chars) <span class="copy" onclick="copyText('+JSON.stringify(L.title)+')">Copy</span></div>';
-      html += '<div class="field-title">'+esc(L.title)+'</div></div>';
+      html += '<div class="field"><div class="field-label">Title '+charBadge(L.title.length, LIMITS.title)+' <span class="copy" onclick="copyText('+JSON.stringify(L.title)+')">Copy</span></div>';
+      html += '<div class="field-title">'+highlightBanned(esc(L.title), rep.banned)+'</div></div>';
     }
     if(L.bullets && L.bullets.length){
       html += '<div class="field"><div class="field-label">Bullet Points</div>';
-      L.bullets.forEach(function(b){ html += '<div class="bullet">'+esc(b)+'</div>'; });
+      L.bullets.forEach(function(b){ html += '<div class="bullet">'+highlightBanned(esc(b), rep.banned)+' '+charBadge(b.length, LIMITS.bullet)+'</div>'; });
       html += '</div>';
     }
     if(L.description){
       html += '<div class="field"><div class="field-label">Product Description (A+) <span class="copy" onclick="copyText('+JSON.stringify(L.description)+')">Copy</span></div>';
-      html += '<div class="desc-box">'+esc(L.description)+'</div></div>';
+      html += '<div class="desc-box">'+highlightBanned(esc(L.description), rep.banned)+'</div></div>';
     }
     if(L.search_terms){
-      html += '<div class="field"><div class="field-label">Backend Search Terms <span class="copy" onclick="copyText('+JSON.stringify(L.search_terms)+')">Copy</span></div>';
+      html += '<div class="field"><div class="field-label">Backend Search Terms '+charBadge(byteLen(L.search_terms), LIMITS.search_terms_bytes, 'bytes')+' <span class="copy" onclick="copyText('+JSON.stringify(L.search_terms)+')">Copy</span></div>';
       html += '<div class="terms-box">'+esc(L.search_terms)+'</div></div>';
     }
     if(L.differentiation_notes && L.differentiation_notes.length){
