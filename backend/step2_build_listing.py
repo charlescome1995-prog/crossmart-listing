@@ -26,7 +26,10 @@ sys.stdout.reconfigure(encoding='utf-8')
 from llm_client import chat_openai
 
 OUTPUT_DIR = os.path.join(_THIS, 'data', 'output')
-FRONTEND_JSON = os.path.join(_THIS, '..', 'frontend', 'data', 'listing-data.json')
+# B 套结果（自抓 + 火山方舟）
+FRONTEND_JSON = os.path.join(_THIS, '..', 'frontend', 'data', 'listing-data-B.json')
+# 兼容旧前端：同时写一份 listing-data.json
+FRONTEND_JSON_LEGACY = os.path.join(_THIS, '..', 'frontend', 'data', 'listing-data.json')
 
 STOPWORDS = set('''a an the and or for with of to in on at by from your you our we
 this that these those is are be it its as new pack set use used using more most
@@ -139,8 +142,12 @@ def run_step2(keyword):
         'listing': listing,
         'benchmarks': bm.get('benchmarks', []),
     }
+    out['engine'] = 'B'
+    out['engine_name'] = '自抓亚马逊 + 火山方舟 LLM'
     os.makedirs(os.path.dirname(FRONTEND_JSON), exist_ok=True)
     with open(FRONTEND_JSON, 'w', encoding='utf-8') as f:
+        json.dump(out, f, ensure_ascii=False, indent=2)
+    with open(FRONTEND_JSON_LEGACY, 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
     # 也存一份带关键词名的存档
     archive = os.path.join(OUTPUT_DIR, f'listing-{_safe(keyword)}.json')
