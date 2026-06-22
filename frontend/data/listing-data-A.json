@@ -1,0 +1,38 @@
+{
+  "engine": "A",
+  "engine_name": "卖家精灵 listing-builder",
+  "keyword": "batana oil",
+  "source_asin": "B0DBLCYTZ6",
+  "generated": "2026-06-22 01:17:13",
+  "listing": {
+    "title": "Botanic Hearth Batana Oil for Hair Growth & Hair Treatment Oils 4 Fl Oz | Dr Sebi Inspired, 100% Raw & Pure Batana Oil | Scalp & Hair Treatment for Thickness & Strength | All Hair Types",
+    "bullets": [],
+    "description": "Convenient Application: The lightweight, non-greasy formula absorbs quickly and can be used as a leave-in treatment or added to other products.",
+    "_raw_fields": [
+      {
+        "placeholder": "为您的产品写一个标题吧！",
+        "value": "Botanic Hearth Batana Oil for Hair Growth & Hair Treatment Oils 4 Fl Oz | Dr Sebi Inspired, 100% Raw & Pure Batana Oil | Scalp & Hair Treatment for Thickness & Strength | All Hair Types"
+      },
+      {
+        "placeholder": "产品卖点描述1",
+        "value": "Deeply Nourishing: Botanic Hearth Batana Oil is a premium hair and skin treatment that deeply moisturizes, repairs, and promotes growth. This hair oil for hair growth helps stimulate hair follicles to encourage healthy, thicker and faster hair growth."
+      },
+      {
+        "placeholder": "产品卖点描述2",
+        "value": "Versatile Formula: This 118 ml (4 fl oz) oil can be used on hair, skin, nails, and cuticles for intense hydration and nourishment."
+      },
+      {
+        "placeholder": "产品卖点描述3",
+        "value": "Potent Ingredients: Enriched with natural botanicals and essential oils, it helps strengthen and revitalize hair and skin."
+      },
+      {
+        "placeholder": "产品卖点描述4",
+        "value": "Multi-Purpose: Ideal for frizzy or damaged hair, dry skin, brittle nails, and cracked cuticles, providing long-lasting softness and smoothness."
+      },
+      {
+        "placeholder": "产品卖点描述5",
+        "value": "Convenient Application: The lightweight, non-greasy formula absorbs quickly and can be used as a leave-in treatment or added to other products."
+      }
+    ]
+  }
+}

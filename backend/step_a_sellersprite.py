@@ -124,6 +124,7 @@ def _extract_listing(br):
         fields = []
 
     title, bullets, description = '', [], ''
+    bullet_map = {}  # 按序收集“产品卖点描述N”，每个 textarea 一条 bullet
     for f in fields:
         ph = (f.get('placeholder') or '')
         val = (f.get('value') or '').strip()
@@ -132,17 +133,25 @@ def _extract_listing(br):
         if PH_TITLE in ph or ('标题' in ph):
             if len(val) > len(title):
                 title = val
-        elif '描述' in ph or '五点' in ph or '卖点' in ph:
+        elif '卖点' in ph:
+            # “产品卖点描述1~5”：每个 textarea 是一条独立 bullet，按尾号排序
+            m = re.search(r'(\d+)', ph)
+            idx = int(m.group(1)) if m else (len(bullet_map) + 1)
+            bullet_map[idx] = val
+        elif '描述' in ph or '五点' in ph:
             # 五点：按行/分隔拆分
             parts = [p.strip() for p in re.split(r'[\n\r]+|•|·|\u25cf', val) if p.strip()]
             if len(parts) >= 2:
-                bullets = parts[:5]
-            else:
+                for j, p in enumerate(parts[:5], 1):
+                    bullet_map.setdefault(j, p)
+            elif len(val) > len(description):
                 description = val
         else:
             # 最长的那段当描述兜底
             if len(val) > len(description) and len(val) > 60:
                 description = val
+    if bullet_map:
+        bullets = [bullet_map[k] for k in sorted(bullet_map.keys())][:5]
     # 如果没识别出标题，取最长非五点段
     if not title and fields:
         cand = max((f.get('value', '') for f in fields), key=len, default='')

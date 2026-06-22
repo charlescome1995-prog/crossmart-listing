@@ -29,7 +29,7 @@ OPENAI_BASE_URL = "https://ark.cn-beijing.volces.com/api/coding/v3"
 
 # ── 模型 ────────────────────────────────────────────────
 # 文本对话模型（coding plan 默认）
-CHAT_MODEL = "ark-c10942f0-5175-4dbb-afa9-2fde3cade1d3-f42a9"
+CHAT_MODEL = "ark-code-latest"
 # 视觉/Embedding（仅 v3 OpenAI 协议支持）
 EMBEDDING_MODEL = "doubao-embedding-vision"
 

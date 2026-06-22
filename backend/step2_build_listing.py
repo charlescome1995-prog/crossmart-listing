@@ -110,10 +110,15 @@ All output must be in ENGLISH. Output ONLY the JSON object."""
 def generate_listing(keyword, analysis):
     prompt = build_prompt(keyword, analysis)
     print('  [LLM] 生成 listing 中...')
-    raw = chat_openai(prompt, system='You are a precise JSON-only Amazon listing generator.',
-                      max_tokens=2000, temperature=0.4)
+    raw = ''
+    # coding model 偶发返回空内容，重试最多 3 次
+    for attempt in range(3):
+        raw = (chat_openai(prompt, system='You are a precise JSON-only Amazon listing generator.',
+                           max_tokens=3000, temperature=0.4) or '').strip()
+        if raw:
+            break
+        print(f'  [retry] LLM 返回空，重试 {attempt + 1}/3')
     # 抽取 JSON
-    raw = raw.strip()
     m = re.search(r'\{.*\}', raw, re.DOTALL)
     if m:
         raw = m.group(0)

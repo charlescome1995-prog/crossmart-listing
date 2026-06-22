@@ -119,9 +119,13 @@ class CDPBrowser:
 
     def _detect_port(self):
         """检测哪个CDP端口可用：环境变量指定则用指定值，否则检测OpenClaw"""
-        if _USER_SET_PORT:
-            print(f"  [CDP] 使用指定端口: {EDGE_PORT}")
-            return EDGE_PORT
+        # 运行时读取环境变量（不能依赖 import 时的 _USER_SET_PORT 快照，
+        # 因为 edge_session 会在 import 之后才设置 CDP_PORT=9225 铁律端口）
+        _rt_port_env = os.environ.get("CDP_PORT", "")
+        if _rt_port_env != "":
+            rt_port = int(_rt_port_env)
+            print(f"  [CDP] 使用指定端口: {rt_port}（铁律锁定）")
+            return rt_port
         ports_to_try = [OPENCLAW_CDP_PORT, EDGE_PORT]
         for p in ports_to_try:
             try:

@@ -74,7 +74,7 @@ def search_keyword(browser, keyword, max_asins=12):
     amazon = AmazonBrowser(browser)
     amazon.browse_homepage()
     time.sleep(1)
-    amazon.search(keyword)
+    amazon.random_search(keyword)
     time.sleep(3)
     for attempt in range(8):
         asins = parse_search_page_asins(browser, max_asins)
