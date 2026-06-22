@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CrossMart - Listing Builder</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#eaeded;color:#0f1111;font-size:14px;min-height:100vh}
+
+/* Topbar */
+.topbar{background:linear-gradient(135deg,#131921 0%,#232f3e 100%);color:white;padding:10px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.topbar .logo{font-weight:700;font-size:15px;letter-spacing:.5px}
+.topbar a{color:#ccc;text-decoration:none;padding:5px 12px;border-radius:6px;font-size:13px;transition:all .2s}
+.topbar a:hover{background:rgba(255,255,255,.1);color:#fff}
+.topbar a.active{background:#e94560;color:white}
+
+/* Filters / input bar */
+.filters{background:white;padding:10px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #d5d9d9;position:sticky;top:48px;z-index:99}
+.filters input{padding:6px 10px;border:1px solid #d5d9d9;border-radius:6px;font-size:13px;background:white;width:220px}
+.filters button{padding:6px 14px;border:none;border-radius:6px;font-size:13px;cursor:pointer;background:#e94560;color:white;font-weight:600;transition:all .2s}
+.filters button:hover{background:#d63451}
+.filters button:disabled{background:#ccc;cursor:not-allowed}
+.filters .badge{background:#e94560;color:white;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.filters .stat{color:#555;font-size:12px}
+
+/* Card */
+.card{background:white;border:1px solid #d5d9d9;border-radius:10px;overflow:hidden;margin:12px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card-header{background:#fafafa;padding:10px 16px;font-weight:600;border-bottom:1px solid #e6e8ea;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.card-body{padding:14px 16px}
+
+/* Listing fields */
+.field{margin-bottom:16px}
+.field-label{font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center}
+.field-label .copy{cursor:pointer;color:#007185;text-transform:none;font-size:11px}
+.field-label .copy:hover{text-decoration:underline}
+.field-title{font-size:15px;font-weight:600;line-height:1.4;color:#0f1111;background:#f7fafc;padding:10px 12px;border-radius:6px;border:1px solid #e6e8ea}
+.bullet{font-size:13px;line-height:1.5;padding:8px 12px;border-left:3px solid #067d62;background:#f7fdfb;margin-bottom:6px;border-radius:0 6px 6px 0}
+.desc-box{font-size:13px;line-height:1.6;color:#333;background:#fafafa;padding:12px;border-radius:6px;border:1px solid #e6e8ea;white-space:pre-wrap}
+.terms-box{font-size:12px;color:#555;background:#fffbeb;padding:10px 12px;border-radius:6px;border:1px solid #fde68a;font-family:monospace;word-break:break-word}
+.note{font-size:12px;line-height:1.5;padding:6px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;margin-bottom:5px;color:#1e40af}
+
+/* Benchmark table */
+.bm-row{padding:10px 16px;border-bottom:1px solid #f0f2f2;display:grid;grid-template-columns:36px 1fr auto auto;gap:12px;align-items:center}
+.bm-row:last-child{border-bottom:none}
+.bm-rank{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;background:#e6e8ea;color:#555;flex-shrink:0}
+.bm-rank.top{background:linear-gradient(135deg,#ffd700,#f5c518);color:#000}
+.bm-info .asin{font-weight:600;font-size:12px;color:#007185}
+.bm-info .title{font-size:12px;color:#555;line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.bm-meta{font-size:11px;color:#999;text-align:right;white-space:nowrap}
+.bm-price{color:#B12704;font-weight:700;font-size:14px;text-align:right;min-width:55px}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;background:#f0f8ff;color:#067d62;border:1px solid #ceead6;margin:1px}
+.tag.ad{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.kw-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;margin:2px}
+
+.loading{text-align:center;padding:40px;color:#999}
+.empty{text-align:center;padding:40px;color:#94a3b8}
+.hint{font-size:11px;color:#999;margin-left:8px}
+
+@media(max-width:768px){
+  .filters{top:44px;padding:8px 10px}
+  .filters input{width:140px}
+  .bm-row{grid-template-columns:28px 1fr auto;gap:8px}
+  .bm-row .bm-price{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="logo">📝 CrossMart Listing</span>
+  <a href="https://charlescome1995-prog.github.io/crossmart-monitor/monitor.html" target="_top">ASIN Monitor</a>
+  <a href="https://charlescome1995-prog.github.io/crossmart-selector/frontend/selection.html" target="_top">Keyword Selector</a>
+  <a href="listing.html" class="active">Listing Builder</a>
+</div>
+
+<div class="filters">
+  <input type="text" id="kwInput" placeholder="Enter target keyword...">
+  <button id="btnBuild" onclick="showRunHint()">Build Listing</button>
+  <span class="badge" id="kwBadge">—</span>
+  <span class="stat" id="genTime"></span>
+  <span class="hint">Generated by local pipeline · view-only here</span>
+</div>
+
+<div id="content">
+  <div class="loading">Loading...</div>
+</div>
+
+<script>
+function showRunHint(){
+  var kw = (document.getElementById('kwInput').value || '<keyword>').trim();
+  alert('Run locally:\n\npython backend/run_listing.py "' + kw + '"\n\nThen git push and Ctrl+F5 refresh.');
+}
+function num(v){ if(v===null||v===undefined||v==='') return '—'; return v; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+function copyText(t){ navigator.clipboard.writeText(t).then(function(){},function(){}); }
+
+function render(d){
+  var c = document.getElementById('content');
+  if(!d || !d.listing){ c.innerHTML = '<div class="empty">No listing data yet. Run the local pipeline first.</div>'; return; }
+  document.getElementById('kwBadge').textContent = d.keyword || '—';
+  document.getElementById('genTime').textContent = d.generated ? ('Generated: ' + d.generated) : '';
+  var kwInput = document.getElementById('kwInput');
+  if(kwInput && d.keyword) kwInput.value = d.keyword;
+
+  var L = d.listing || {};
+  var html = '';
+
+  // ── Generated Listing ──
+  html += '<div class="card">';
+  html += '<div class="card-header"><span>Your Generated Listing</span><span class="badge">'+esc(d.keyword||'')+'</span></div>';
+  html += '<div class="card-body">';
+
+  if(L._parse_error){
+    html += '<div class="note">LLM output could not be parsed as JSON. Raw output below.</div>';
+    html += '<div class="desc-box">'+esc(L._raw||'')+'</div>';
+  } else {
+    // Title
+    if(L.title){
+      html += '<div class="field"><div class="field-label">Title <span class="copy" onclick="copyText('+JSON.stringify(L.title)+')">Copy</span></div>';
+      html += '<div class="field-title">'+esc(L.title)+'</div></div>';
+    }
+    // Bullets
+    if(L.bullets && L.bullets.length){
+      html += '<div class="field"><div class="field-label">Bullet Points</div>';
+      L.bullets.forEach(function(b){ html += '<div class="bullet">'+esc(b)+'</div>'; });
+      html += '</div>';
+    }
+    // Description
+    if(L.description){
+      html += '<div class="field"><div class="field-label">Product Description (A+) <span class="copy" onclick="copyText('+JSON.stringify(L.description)+')">Copy</span></div>';
+      html += '<div class="desc-box">'+esc(L.description)+'</div></div>';
+    }
+    // Search terms
+    if(L.search_terms){
+      html += '<div class="field"><div class="field-label">Backend Search Terms <span class="copy" onclick="copyText('+JSON.stringify(L.search_terms)+')">Copy</span></div>';
+      html += '<div class="terms-box">'+esc(L.search_terms)+'</div></div>';
+    }
+    // Differentiation
+    if(L.differentiation_notes && L.differentiation_notes.length){
+      html += '<div class="field"><div class="field-label">Differentiation Notes</div>';
+      L.differentiation_notes.forEach(function(n){ html += '<div class="note">'+esc(n)+'</div>'; });
+      html += '</div>';
+    }
+  }
+  html += '</div></div>';
+
+  // ── Competitor Analysis ──
+  if(d.analysis){
+    var a = d.analysis;
+    html += '<div class="card">';
+    html += '<div class="card-header"><span>Competitor Analysis</span><span class="stat">'+(d.benchmark_count||0)+' benchmark ASINs</span></div>';
+    html += '<div class="card-body">';
+    if(a.price_range){ html += '<div class="field"><div class="field-label">Competitor Price Range</div><div class="field-title">$'+(a.price_range[0]||0).toFixed(2)+' - $'+(a.price_range[1]||0).toFixed(2)+'</div></div>'; }
+    if(a.top_keywords && a.top_keywords.length){
+      html += '<div class="field"><div class="field-label">High-Frequency Selling-Point Words</div><div>';
+      a.top_keywords.forEach(function(w){ html += '<span class="kw-chip">'+esc(w)+'</span>'; });
+      html += '</div></div>';
+    }
+    html += '</div></div>';
+  }
+
+  // ── Benchmark ASINs ──
+  if(d.benchmarks && d.benchmarks.length){
+    html += '<div class="card">';
+    html += '<div class="card-header"><span>Benchmark ASINs</span><span class="stat">'+d.benchmarks.length+' selected</span></div>';
+    d.benchmarks.forEach(function(b, i){
+      html += '<div class="bm-row">';
+      html += '<div class="bm-rank'+(i===0?' top':'')+'">'+(i+1)+'</div>';
+      html += '<div class="bm-info"><div class="asin">'+esc(b.asin)+(b.sponsored?' <span class="tag ad">Ad</span>':'')+'</div>';
+      html += '<div class="title">'+esc(b.title||'')+'</div></div>';
+      html += '<div class="bm-meta">⭐'+num(b.rating)+'<br>('+num(b.reviews)+')</div>';
+      html += '<div class="bm-price">'+(b.price?('$'+b.price):'—')+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  c.innerHTML = html;
+}
+
+fetch('data/listing-data.json?t=' + Date.now())
+  .then(function(r){ if(!r.ok) throw new Error('no data'); return r.json(); })
+  .then(render)
+  .catch(function(){
+    document.getElementById('content').innerHTML =
+      '<div class="empty">No listing generated yet.<br><br>Run locally:<br><code>python backend/run_listing.py "your keyword"</code><br>then git push &amp; refresh.</div>';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+backend/data/output/*.json
+*.log
+.DS_Store
