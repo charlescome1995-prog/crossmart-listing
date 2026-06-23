@@ -97,6 +97,21 @@ COMPETITOR ANALYSIS (top benchmark ASINs for this keyword):
 
 TASK: Design a NEW, differentiated Amazon listing that can compete with and stand out from the above. Follow Amazon US best practices.
 
+COPY RULES (apply to title, bullets and description):
+- FAB: every bullet must follow Feature -> Advantage -> Benefit (state the spec, what it does, why the buyer wins).
+- Each bullet starts with a CAPITALIZED benefit phrase, then a colon.
+- Include concrete numbers/specs where possible (size, count, duration, %).
+- Keep each bullet concise: <= 2 lines (<= 240 chars).
+- Order by importance: bullet #1 = the strongest / most pain-solving selling point.
+- Use 2nd person (you / your) for a conversational tone.
+- Weave the target keyword and high-frequency selling-point words naturally for SEO.
+- description: persuasive FAB narrative that also touches specs, competitive advantage, use-scenarios and after-sales/trust where relevant.
+
+A+ STRUCTURE RULES (apply to aplus_modules ordering, inspired by high-converting e-commerce one-pagers):
+- Order modules as a landing-page flow: lifestyle_scene (hero/scene) -> feature_highlight (3-4 key selling points, grid feel: short headline + one benefit line) -> comparison (vs competitors/typical alternatives) -> how_to_use or specifications -> brand_story.
+- MUST include at least one comparison module and at least one lifestyle_scene module.
+- One focused message per module; keep copy scannable.
+
 Return STRICT JSON only (no markdown, no commentary) with this exact schema:
 {{
   "title": "<=200 chars, lead with brand placeholder [BRAND], include the target keyword and 2-3 top differentiators",
