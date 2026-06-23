@@ -38,6 +38,17 @@ body{font-family:"Times New Roman",Times,"PingFang SC","Microsoft YaHei",serif;b
 .bullet{font-size:13px;line-height:1.5;padding:8px 12px;border-left:3px solid #067d62;background:#f7fdfb;margin-bottom:6px;border-radius:0 6px 6px 0}
 .desc-box{font-size:13px;line-height:1.6;color:#333;background:#fafafa;padding:12px;border-radius:6px;border:1px solid #e6e8ea;white-space:pre-wrap}
 .terms-box{font-size:12px;color:#555;background:#fffbeb;padding:10px 12px;border-radius:6px;border:1px solid #fde68a;font-family:monospace;word-break:break-word}
+.aplus-wrap{display:flex;flex-direction:column;gap:12px}
+.aplus-mod{display:flex;gap:12px;border:1px solid #e2e8f0;border-radius:8px;padding:10px;background:#fafafa}
+.aplus-img{flex:0 0 160px;width:160px;height:160px;border-radius:6px;overflow:hidden;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:12px;color:#94a3b8}
+.aplus-img img{width:100%;height:100%;object-fit:cover;display:block}
+.aplus-img-err{color:#b91c1c;background:#fef2f2}
+.aplus-txt{flex:1;min-width:0}
+.aplus-type{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#067d62;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 6px;margin-bottom:4px}
+.aplus-head{font-weight:700;font-size:14px;margin:4px 0}
+.aplus-body{font-size:13px;color:#444;line-height:1.6}
+.aplus-prompt{margin-top:6px;font-size:11px;color:#888}
+.aplus-prompt summary{cursor:pointer;color:#067d62}
 .note{font-size:12px;line-height:1.5;padding:6px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;margin-bottom:5px;color:#1e40af}
 
 /* Benchmark table */
@@ -189,6 +200,12 @@ function buildPlain(L){
   if(L.bullets && L.bullets.length) parts.push('BULLET POINTS:\n' + L.bullets.map(function(b,i){return (i+1)+'. '+b;}).join('\n'));
   if(L.description) parts.push('DESCRIPTION:\n' + L.description);
   if(L.search_terms) parts.push('SEARCH TERMS:\n' + L.search_terms);
+  if(L.aplus_modules && L.aplus_modules.length){
+    var ap = L.aplus_modules.map(function(m,i){
+      return '['+(i+1)+'] '+(m.type||'')+' - '+(m.heading||'')+'\n'+(m.body||'')+(m.image_prompt?('\nIMAGE: '+m.image_prompt):'');
+    }).join('\n\n');
+    parts.push('A+ MODULES:\n' + ap);
+  }
   return parts.join('\n\n');
 }
 function copyAll(engine){
@@ -250,6 +267,27 @@ function renderListingCard(d, engine){
       html += '<div class="field"><div class="field-label">Differentiation Notes</div>';
       L.differentiation_notes.forEach(function(n){ html += '<div class="note">'+esc(n)+'</div>'; });
       html += '</div>';
+    }
+    if(L.aplus_modules && L.aplus_modules.length){
+      html += '<div class="field"><div class="field-label">A+ Content Modules ('+L.aplus_modules.length+')</div>';
+      html += '<div class="aplus-wrap">';
+      L.aplus_modules.forEach(function(m, mi){
+        html += '<div class="aplus-mod">';
+        if(m.image_url){
+          html += '<div class="aplus-img"><img src="'+esc(m.image_url)+'" alt="module '+(mi+1)+'" loading="lazy"></div>';
+        } else if(m.image_error){
+          html += '<div class="aplus-img aplus-img-err">⚠️ image failed</div>';
+        } else if(m.image_prompt){
+          html += '<div class="aplus-img aplus-img-ph">🖼️ (prompt only)</div>';
+        }
+        html += '<div class="aplus-txt">';
+        if(m.type){ html += '<span class="aplus-type">'+esc(m.type)+'</span>'; }
+        if(m.heading){ html += '<div class="aplus-head">'+esc(m.heading)+'</div>'; }
+        if(m.body){ html += '<div class="aplus-body">'+esc(m.body)+'</div>'; }
+        if(m.image_prompt){ html += '<details class="aplus-prompt"><summary>image prompt</summary>'+esc(m.image_prompt)+'</details>'; }
+        html += '</div></div>';
+      });
+      html += '</div></div>';
     }
   }
   html += '</div></div>';

@@ -106,6 +106,51 @@ def embed(text: str, model: str = None) -> list:
     return resp.data[0].embedding
 
 
+# ── 图像生成（Seedream 4.0，标准 ark v3 端点）──
+def gen_image(prompt: str, size: str = "1024x1024", model: str = None,
+              timeout: int = 60) -> str:
+    """调用火山方舟 Seedream 文生图，返回图片 URL。
+
+    Args:
+        prompt: 英文画面描述
+        size: 尺寸，如 1024x1024 / 2048x2048 / 1024x1536
+        model: 模型名（默认 llm_config.IMAGE_MODEL）
+    Returns:
+        图片 URL（临时，需及时下载）；失败抛出异常
+    """
+    if not llm_config.is_configured():
+        raise RuntimeError("ARK_API_KEY 未设置。")
+    import json as _json, urllib.request, urllib.error
+    body = _json.dumps({
+        "model": model or llm_config.IMAGE_MODEL,
+        "prompt": prompt,
+        "size": size,
+        "n": 1,
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        llm_config.IMAGE_API_URL, data=body, method="POST",
+        headers={"Authorization": f"Bearer {llm_config.API_KEY}",
+                 "Content-Type": "application/json"})
+    resp = urllib.request.urlopen(req, timeout=timeout)
+    data = _json.loads(resp.read().decode("utf-8"))
+    items = data.get("data") or []
+    if not items:
+        raise RuntimeError(f"图像生成返回空：{str(data)[:200]}")
+    return items[0].get("url") or items[0].get("b64_json", "")
+
+
+def download_image(url: str, dest_path: str, timeout: int = 60) -> str:
+    """下载图片 URL 到本地（Seedream 返回的 URL 有时效，必须及时落盘）。"""
+    import urllib.request, os as _os
+    _os.makedirs(_os.path.dirname(dest_path), exist_ok=True)
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        data = r.read()
+    with open(dest_path, "wb") as f:
+        f.write(data)
+    return dest_path
+
+
 if __name__ == "__main__":
     # 快速连通性测试
     import sys

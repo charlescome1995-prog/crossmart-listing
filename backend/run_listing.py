@@ -39,6 +39,7 @@ def main():
     ap.add_argument('--step', choices=['1', '2', 'all'], default='all',
                     help='1=只找对标 2=只生成（需已跑过1） all=全部')
     ap.add_argument('--asin', default=None, help='A 套指定对标 ASIN（默认用评分最高）')
+    ap.add_argument('--skip-images', action='store_true', help='B 套不生成 A+ 配图（只出文案）')
     args = ap.parse_args()
 
     # STEP1：抓对标 ASIN（两套共享，跑一次即可）
@@ -52,7 +53,7 @@ def main():
         if args.engine in ('B', 'both'):
             print('\n>>> 运行 B 套（自抓 + 火山方舟 LLM）')
             try:
-                run_step2(args.keyword)
+                run_step2(args.keyword, skip_images=args.skip_images)
             except Exception as e:
                 print(f'  B 套失败：{e}')
         if args.engine in ('A', 'both'):

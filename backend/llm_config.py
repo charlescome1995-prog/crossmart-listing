@@ -32,6 +32,10 @@ OPENAI_BASE_URL = "https://ark.cn-beijing.volces.com/api/coding/v3"
 CHAT_MODEL = "ark-code-latest"
 # 视觉/Embedding（仅 v3 OpenAI 协议支持）
 EMBEDDING_MODEL = "doubao-embedding-vision"
+# 图像生成模型（Seedream 4.0，走标准 ark v3 端点）
+IMAGE_MODEL = "doubao-seedream-4-0-250828"
+# 标准 ark v3 图像生成端点（注意：与 coding plan 的 base url 不同）
+IMAGE_API_URL = "https://ark.cn-beijing.volces.com/api/v3/images/generations"
 
 # ── API Key（从环境变量读取，不在源码中硬编码）────────
 API_KEY = os.environ.get("ARK_API_KEY", "").strip()
