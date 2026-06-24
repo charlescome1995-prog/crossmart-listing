@@ -25,12 +25,8 @@ from browser.edge_session import open_edge
 OUTPUT_DIR = os.path.join(_THIS, 'data', 'output')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# 复用监控板块已验证的亚马逊抓取逻辑
-_MONITOR_BROWSER = os.path.join(
-    _THIS, '..', '..', 'crossmart-monitor', 'backend', 'browser')
-_MONITOR_BROWSER = os.path.abspath(_MONITOR_BROWSER)
-if _MONITOR_BROWSER not in sys.path:
-    sys.path.insert(0, os.path.dirname(_MONITOR_BROWSER))  # 让 `browser.xxx` 可导入
+# 注：browser 模块已自包含在 listing/backend/browser/（不再注入 crossmart-monitor 路径，
+# 否则会让 `import llm_client` 误命中 monitor 版本，缺 gen_image）
 
 
 def _safe(s):

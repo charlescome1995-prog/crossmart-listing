@@ -105,11 +105,13 @@ COPY RULES (apply to title, bullets and description):
 - Order by importance: bullet #1 = the strongest / most pain-solving selling point.
 - Use 2nd person (you / your) for a conversational tone.
 - Weave the target keyword and high-frequency selling-point words naturally for SEO.
-- description: persuasive FAB narrative that also touches specs, competitive advantage, use-scenarios and after-sales/trust where relevant.
+- PAIN-POINT GAPS: identify needs/concerns the competitor bullets above do NOT address, and make at least 2 bullets directly solve those unmet pain points (this is your differentiation edge).
+- description: persuasive FAB narrative that also touches specs, third-party certifications / material standards, a comparison vs typical alternatives, competitive advantage, use-scenarios and after-sales/trust where relevant.
 
 A+ STRUCTURE RULES (apply to aplus_modules ordering, inspired by high-converting e-commerce one-pagers):
 - Order modules as a landing-page flow: lifestyle_scene (hero/scene) -> feature_highlight (3-4 key selling points, grid feel: short headline + one benefit line) -> comparison (vs competitors/typical alternatives) -> how_to_use or specifications -> brand_story.
 - MUST include at least one comparison module and at least one lifestyle_scene module.
+- The hero / lifestyle_scene module heading MUST be a single core value proposition of <=12 words.
 - One focused message per module; keep copy scannable.
 
 Return STRICT JSON only (no markdown, no commentary) with this exact schema:
@@ -124,7 +126,7 @@ Return STRICT JSON only (no markdown, no commentary) with this exact schema:
       "type": "one of: brand_story | feature_highlight | comparison | how_to_use | lifestyle_scene | specifications",
       "heading": "short module headline (<=60 chars)",
       "body": "module body copy, 40-80 words, benefit-driven",
-      "image_prompt": "a detailed ENGLISH text-to-image prompt to generate the module visual: describe scene, composition, lighting, style, mood. NO text/words in image, NO brand logos, NO copyrighted characters. Photorealistic commercial product photography style."
+      "image_prompt": "a detailed ENGLISH text-to-image prompt to generate the module visual: describe scene, composition, lighting, style, mood. Maintain a CONSISTENT color palette and clean negative space across all modules; mobile-first readable composition (large clear subject). NO text/words in image, NO brand logos, NO copyrighted characters. Photorealistic commercial product photography style, original AI imagery only."
     }}
   ]
 }}
